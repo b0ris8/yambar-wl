@@ -1,5 +1,5 @@
 option(
-  'backend-x11', type: 'feature', value: 'enabled', description: 'XCB (X11) backend')
+  'backend-x11', type: 'feature', value: 'disabled', description: 'XCB (X11) backend')
 option(
   'backend-wayland', type: 'feature', value: 'enabled', description: 'Wayland backend')
 option(
@@ -26,7 +26,7 @@ option('plugin-mem', type: 'feature', value: 'auto',
        description: 'Memory monitoring support')
 option('plugin-mpd', type: 'feature', value: 'auto',
        description: 'Music Player Daemon (MPD) support')
-option('plugin-mpris', type: 'feature', value: 'enabled',
+option('plugin-mpris', type: 'feature', value: 'disabled',
        description: 'Media Player Remote Interface Specificaion (MPRIS) support')
 option('plugin-i3', type: 'feature', value: 'auto',
        description: 'i3+Sway support')
@@ -50,7 +50,7 @@ option('plugin-niri-language', type: 'feature', value: 'auto',
        description: 'language support for Niri')
 option('plugin-niri-workspaces', type: 'feature', value: 'auto',
        description: 'workspaces support for Niri')
-option('plugin-xkb', type: 'feature', value: 'auto',
+option('plugin-xkb', type: 'feature', value: 'disabled',
        description: 'keyboard support for X11')
-option('plugin-xwindow', type: 'feature', value: 'auto',
+option('plugin-xwindow', type: 'feature', value: 'disabled',
        description: 'XWindow (window tracking for X11) support')
