@@ -12,6 +12,8 @@
  *   radius: N  px, corner radius (optional, default 0 = square)
  *   margin: N  px, vertical inset from top and bottom of the bar
  *              (optional, default 0 = full bar height)
+ *   border-width: N   px, outline drawn inside the shape (optional, default 0)
+ *   border-color: RRGGBBAA  outline colour (required if border-width > 0)
  */
 
 struct private
@@ -19,6 +21,8 @@ struct private
     pixman_color_t color;
     int radius;
     int margin;
+    int border_width;
+    pixman_color_t border_color;
 };
 
 static void
@@ -55,23 +59,18 @@ corner_mask(pixman_image_t *mask, int r, double cx, double cy)
 }
 
 static void
-expose(const struct deco *deco, pixman_image_t *pix, int x, int y, int width, int height)
+fill_rrect(pixman_image_t *pix, const pixman_color_t *color, int x, int top, int width, int h, int r)
 {
-    const struct private *d = deco->private;
-
-    const int top = y + d->margin;
-    const int h = height - 2 * d->margin;
     if (h <= 0 || width <= 0)
         return;
 
-    int r = d->radius;
     if (r > h / 2)
         r = h / 2;
     if (r > width / 2)
         r = width / 2;
 
     if (r <= 0) {
-        pixman_image_fill_rectangles(PIXMAN_OP_OVER, pix, &d->color, 1, &(pixman_rectangle16_t){x, top, width, h});
+        pixman_image_fill_rectangles(PIXMAN_OP_OVER, pix, color, 1, &(pixman_rectangle16_t){x, top, width, h});
         return;
     }
 
@@ -85,10 +84,10 @@ expose(const struct deco *deco, pixman_image_t *pix, int x, int y, int width, in
         rects[n++] = (pixman_rectangle16_t){x + width - r, top + r, r, h - 2 * r};
     }
     if (n > 0)
-        pixman_image_fill_rectangles(PIXMAN_OP_OVER, pix, &d->color, n, rects);
+        pixman_image_fill_rectangles(PIXMAN_OP_OVER, pix, color, n, rects);
 
     /* Corners */
-    pixman_image_t *src = pixman_image_create_solid_fill(&d->color);
+    pixman_image_t *src = pixman_image_create_solid_fill(color);
     pixman_image_t *mask = pixman_image_create_bits(PIXMAN_a8, r, r, NULL, 0);
     if (src == NULL || mask == NULL)
         goto out;
@@ -97,10 +96,10 @@ expose(const struct deco *deco, pixman_image_t *pix, int x, int y, int width, in
         int dst_x, dst_y;
         double cx, cy;
     } corners[4] = {
-        {x, top, r, r},                         /* top-left */
-        {x + width - r, top, 0, r},             /* top-right */
-        {x, top + h - r, r, 0},                 /* bottom-left */
-        {x + width - r, top + h - r, 0, 0},     /* bottom-right */
+        {x, top, r, r},                     /* top-left */
+        {x + width - r, top, 0, r},         /* top-right */
+        {x, top + h - r, r, 0},             /* bottom-left */
+        {x + width - r, top + h - r, 0, 0}, /* bottom-right */
     };
 
     for (int i = 0; i < 4; i++) {
@@ -116,13 +115,34 @@ out:
         pixman_image_unref(src);
 }
 
+static void
+expose(const struct deco *deco, pixman_image_t *pix, int x, int y, int width, int height)
+{
+    const struct private *d = deco->private;
+
+    const int top = y + d->margin;
+    const int h = height - 2 * d->margin;
+    const int bw = d->border_width;
+
+    if (bw > 0) {
+        /* Outline = outer shape in border colour, fill shape inset by bw on top.
+         * An opaque fill colour gives a clean ring. */
+        fill_rrect(pix, &d->border_color, x, top, width, h, d->radius);
+        fill_rrect(pix, &d->color, x + bw, top + bw, width - 2 * bw, h - 2 * bw,
+                   d->radius - bw > 0 ? d->radius - bw : 0);
+    } else
+        fill_rrect(pix, &d->color, x, top, width, h, d->radius);
+}
+
 static struct deco *
-background_new(pixman_color_t color, int radius, int margin)
+background_new(pixman_color_t color, int radius, int margin, int border_width, pixman_color_t border_color)
 {
     struct private *priv = calloc(1, sizeof(*priv));
     priv->color = color;
     priv->radius = radius;
     priv->margin = margin;
+    priv->border_width = border_width;
+    priv->border_color = border_color;
 
     struct deco *deco = calloc(1, sizeof(*deco));
     deco->private = priv;
@@ -138,8 +158,16 @@ from_conf(const struct yml_node *node)
     const struct yml_node *color = yml_get_value(node, "color");
     const struct yml_node *radius = yml_get_value(node, "radius");
     const struct yml_node *margin = yml_get_value(node, "margin");
+    const struct yml_node *border_width = yml_get_value(node, "border-width");
+    const struct yml_node *border_color = yml_get_value(node, "border-color");
+
+    const int bw = border_width != NULL && border_color != NULL ? yml_value_as_int(border_width) : 0;
+    pixman_color_t bc = {0};
+    if (border_color != NULL)
+        bc = conf_to_color(border_color);
+
     return background_new(conf_to_color(color), radius != NULL ? yml_value_as_int(radius) : 0,
-                          margin != NULL ? yml_value_as_int(margin) : 0);
+                          margin != NULL ? yml_value_as_int(margin) : 0, bw, bc);
 }
 
 static bool
@@ -149,6 +177,8 @@ verify_conf(keychain_t *chain, const struct yml_node *node)
         {"color", true, &conf_verify_color},
         {"radius", false, &conf_verify_unsigned},
         {"margin", false, &conf_verify_unsigned},
+        {"border-width", false, &conf_verify_unsigned},
+        {"border-color", false, &conf_verify_color},
         DECORATION_COMMON_ATTRS,
     };
 
