@@ -19,8 +19,7 @@
  *   shadow-color:  RRGGBBAA  shadow colour at its densest (required if shadow-size > 0)
  *   shadow-offset: N   px, shadow shift downwards (optional, default 1)
  *
- * The shadow is drawn outside the shape: keep margin >= shadow-size + shadow-offset
- * and bar spacing >= shadow-size, or it gets clipped by the bar edges.
+ * The shadow is drawn outside the shape; parts beyond the bar edges are clipped.
  */
 
 struct private
@@ -68,8 +67,9 @@ corner_mask(pixman_image_t *mask, int r, double cx, double cy)
     }
 }
 
-/* Soft shadow: per-pixel distance to the rounded rectangle, alpha falls off
- * quadratically to zero at `size` px from the edge. Drawn as an a8 mask. */
+/* Soft shadow: per-pixel distance to the rounded rectangle, alpha fades to
+ * zero at `size` px from the edge (smoothstep). Drawn as an a8 mask; whatever
+ * falls outside the bar is clipped by the bar itself. */
 static void
 draw_shadow(pixman_image_t *pix, const pixman_color_t *color, int x, int top, int width, int h, int r, int size)
 {
@@ -109,7 +109,8 @@ draw_shadow(pixman_image_t *pix, const pixman_color_t *color, int x, int top, in
             double t = dist <= 0 ? 0 : dist / size;
             if (t >= 1)
                 continue;
-            double a = (1 - t) * (1 - t);
+            /* smoothstep falloff: holds density near the shape, long soft tail */
+            double a = 1 - t * t * (3 - 2 * t);
             data[py * stride + px] = (uint8_t)(a * 255);
         }
     }
