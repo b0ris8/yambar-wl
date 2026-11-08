@@ -11,17 +11,17 @@ pill_bg: &pill_bg 232731ff
 # Форма пилюли: radius — скругление углов, margin — отступ от верха/низа панели,
 # пилюля = height - 2*margin. Рамка пилюли — цветом модуля (pill_<цвет>),
 # у нейтральной пилюли (pill) — pill_border.
-pill_shadow: &pill_shadow 00000099   # тень пилюли: чёрный 60% в самом плотном месте
+pill_shadow: &pill_shadow 000000cc   # тень пилюли: чёрный 80% у самой рамки, к краю тени — 0
 pill_border: &pill_border 3b425280   # nord1, 50% — рамка нейтральной пилюли
-pill_shape: &pill_shape {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: *pill_border}
+pill_shape: &pill_shape {color: *pill_bg, radius: 5, margin: 6, border-width: 1, shadow-size: 5, shadow-color: *pill_shadow, border-color: *pill_border}
 pill:       &pill       {background: *pill_shape}
-pill_red:  &pill_red  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: bf616a80}}
-pill_purple:  &pill_purple  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: b48ead80}}
-pill_yellow:  &pill_yellow  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: ebcb8b80}}
-pill_orange:  &pill_orange  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: d0877080}}
-pill_blue:  &pill_blue  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: 81a1c180}}
-pill_cyan:  &pill_cyan  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: 88c0d080}}
-pill_green:  &pill_green  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: a3be8c80}}
+pill_red:  &pill_red  {background: {color: *pill_bg, radius: 5, margin: 6, border-width: 1, shadow-size: 5, shadow-color: *pill_shadow, border-color: bf616a80}}
+pill_purple:  &pill_purple  {background: {color: *pill_bg, radius: 5, margin: 6, border-width: 1, shadow-size: 5, shadow-color: *pill_shadow, border-color: b48ead80}}
+pill_yellow:  &pill_yellow  {background: {color: *pill_bg, radius: 5, margin: 6, border-width: 1, shadow-size: 5, shadow-color: *pill_shadow, border-color: ebcb8b80}}
+pill_orange:  &pill_orange  {background: {color: *pill_bg, radius: 5, margin: 6, border-width: 1, shadow-size: 5, shadow-color: *pill_shadow, border-color: d0877080}}
+pill_blue:  &pill_blue  {background: {color: *pill_bg, radius: 5, margin: 6, border-width: 1, shadow-size: 5, shadow-color: *pill_shadow, border-color: 81a1c180}}
+pill_cyan:  &pill_cyan  {background: {color: *pill_bg, radius: 5, margin: 6, border-width: 1, shadow-size: 5, shadow-color: *pill_shadow, border-color: 88c0d080}}
+pill_green:  &pill_green  {background: {color: *pill_bg, radius: 5, margin: 6, border-width: 1, shadow-size: 5, shadow-color: *pill_shadow, border-color: a3be8c80}}
 
 bar:
   background: 2e3440ff        # nord0
@@ -29,12 +29,12 @@ bar:
   font: 'cascadia code:pixelsize=13'   # текст; значки — icon_font
 
   location: top
-  height: 28                  # пилюля 20 + отступы 4+4
+  height: 32                  # пилюля 20 + отступы 6+6 (в отступах — тень)
   border:
     bottom-width: 1           # линия под панелью вместо тени
     color: 1d2129ff
-  margin: 0
-  spacing: 3                  # промежуток между пилюлями = 2 × spacing
+  margin: 6                   # слева/справа: место для тени крайних пилюль
+  spacing: 4                  # промежуток между пилюлями = 2 × spacing
   layer: bottom
 
   left:

@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -67,6 +68,61 @@ corner_mask(pixman_image_t *mask, int r, double cx, double cy)
     }
 }
 
+/* Soft shadow: per-pixel distance to the rounded rectangle, alpha falls off
+ * quadratically to zero at `size` px from the edge. Drawn as an a8 mask. */
+static void
+draw_shadow(pixman_image_t *pix, const pixman_color_t *color, int x, int top, int width, int h, int r, int size)
+{
+    if (width <= 0 || h <= 0 || size <= 0)
+        return;
+    if (r > h / 2)
+        r = h / 2;
+    if (r > width / 2)
+        r = width / 2;
+
+    const int mw = width + 2 * size;
+    const int mh = h + 2 * size;
+
+    pixman_image_t *mask = pixman_image_create_bits(PIXMAN_a8, mw, mh, NULL, 0);
+    pixman_image_t *src = pixman_image_create_solid_fill(color);
+    if (mask == NULL || src == NULL)
+        goto out;
+
+    uint8_t *data = (uint8_t *)pixman_image_get_data(mask);
+    const int stride = pixman_image_get_stride(mask);
+
+    /* shape centre and half-extents in mask coordinates */
+    const double cx = size + width / 2.0;
+    const double cy = size + h / 2.0;
+    const double hx = width / 2.0 - r;
+    const double hy = h / 2.0 - r;
+
+    for (int py = 0; py < mh; py++) {
+        for (int px = 0; px < mw; px++) {
+            double qx = fabs(px + 0.5 - cx) - hx;
+            double qy = fabs(py + 0.5 - cy) - hy;
+            double ox = qx > 0 ? qx : 0;
+            double oy = qy > 0 ? qy : 0;
+            double inside = (qx > qy ? qx : qy);
+            double dist = sqrt(ox * ox + oy * oy) + (inside < 0 ? inside : 0) - r;
+
+            double t = dist <= 0 ? 0 : dist / size;
+            if (t >= 1)
+                continue;
+            double a = (1 - t) * (1 - t);
+            data[py * stride + px] = (uint8_t)(a * 255);
+        }
+    }
+
+    pixman_image_composite32(PIXMAN_OP_OVER, src, mask, pix, 0, 0, 0, 0, x - size, top - size, mw, mh);
+
+out:
+    if (mask != NULL)
+        pixman_image_unref(mask);
+    if (src != NULL)
+        pixman_image_unref(src);
+}
+
 static void
 fill_rrect(pixman_image_t *pix, const pixman_color_t *color, int x, int top, int width, int h, int r)
 {
@@ -133,20 +189,8 @@ expose(const struct deco *deco, pixman_image_t *pix, int x, int y, int width, in
     const int h = height - 2 * d->margin;
     const int bw = d->border_width;
 
-    if (d->shadow_size > 0) {
-        /* Cheap blur: concentric shapes growing outwards, each a fraction of the
-         * shadow alpha. Overlap accumulates density towards the shape. */
-        const int n = d->shadow_size;
-        const pixman_color_t sc = d->shadow_color; /* premultiplied */
-        const pixman_color_t step = {
-            .red = sc.red / n,
-            .green = sc.green / n,
-            .blue = sc.blue / n,
-            .alpha = sc.alpha / n,
-        };
-        for (int i = n; i >= 1; i--)
-            fill_rrect(pix, &step, x - i, top + d->shadow_offset - i, width + 2 * i, h + 2 * i, d->radius + i);
-    }
+    if (d->shadow_size > 0)
+        draw_shadow(pix, &d->shadow_color, x, top + d->shadow_offset, width, h, d->radius, d->shadow_size);
 
     if (bw > 0) {
         /* Outline = outer shape in border colour, fill shape inset by bw on top.
