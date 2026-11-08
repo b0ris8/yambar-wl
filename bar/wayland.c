@@ -249,6 +249,9 @@ wl_pointer_leave(void *data, struct wl_pointer *wl_pointer, uint32_t serial, str
 
     if (backend->active_seat == seat)
         backend->active_seat = NULL;
+
+    /* yambar-wl: pointer left the bar -> drop hover highlight (x/y out of range) */
+    backend->bar_on_mouse(backend->bar, ON_MOUSE_MOTION, MOUSE_BTN_NONE, -1, -1);
 }
 
 static void

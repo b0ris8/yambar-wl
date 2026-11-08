@@ -16,6 +16,10 @@
 #define LOG_ENABLE_DBG 0
 #include "bar/bar.h"
 #include "log.h"
+#include "decoration.h"
+
+int deco_hover_x = -1;
+int deco_hover_y = -1;
 
 void
 particle_default_destroy(struct particle *particle)

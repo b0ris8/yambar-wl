@@ -38,8 +38,12 @@ ldd build/yambar | grep -Ei 'xcb|x11|dbus|systemd|elogind' || echo чисто
 | `shadow-size`   | длина размытия тени вокруг формы, px; нужен `shadow-color`        | 0            |
 | `shadow-color`  | цвет тени у края формы, дальше плавно до прозрачного              | —            |
 | `shadow-offset` | сдвиг тени вниз, px                                               | 1            |
+| `hover-color`   | цвет фона, пока над пилюлей курсор                                | —            |
 
 У `underline` — `inset`: укоротить линию на N px с обеих сторон.
+
+Панель следит за курсором и перерисовывается, когда он переходит на другой модуль или уходит с панели —
+так работает `hover-color`. На каждое движение мыши внутри одного модуля перерисовки нет.
 
 Панель разрешает декорациям заходить в свои боковые поля (`bar.margin`), чтобы тень крайних пилюль не обрезалась.
 Текст и значки туда как не попадали, так и не попадают.
@@ -128,6 +132,7 @@ bar:
 | рамка ярче / тише                 | альфа в `border-color`: `...80` — 50%, `...cc` — 80%    |
 | тень длиннее / короче             | `shadow-size`; `bar.margin` не меньше                    |
 | тень плотнее / светлее            | цвет `shadow-color`                                     |
+| подсветка под курсором            | `hover-color` (сейчас nord3 `4c566a`)                   |
 | отступ текста внутри пилюли       | `left-margin` / `right-margin` у `list`                 |
 
 Стоковый yambar на этих ключах откажется стартовать (`invalid key: radius`) — значит, запустился не тот бинарник.
@@ -140,7 +145,7 @@ bar:
 
 ```yaml
 # ~/.config/yambar/config.yml — стиль «пилюли» (Nord + свои тёмные)
-# ТРЕБУЕТ пропатченный yambar (ветка pill): background.radius / margin / border-* / shadow-*.
+# ТРЕБУЕТ пропатченный yambar (ветка pill): background.radius / margin / border-* / shadow-* / hover-color.
 # Стоковый yambar на этих ключах откажется стартовать.
 
 icon_font: &icon_font 'Symbols Nerd Font:pixelsize=14'
@@ -153,16 +158,18 @@ pill_bg: &pill_bg 232731ff
 # пилюля = height - 2*margin. Рамка пилюли — цветом модуля (pill_<цвет>),
 # у нейтральной пилюли (pill) — pill_border.
 pill_shadow: &pill_shadow 16191f99   # тень пилюли: 16191f, 60% у рамки, плавно к нулю за shadow-size
+pill_hover: &pill_hover 4c566aff     # nord3 — фон пилюли под курсором (мягче: 434c5eff, nord2)
 pill_border: &pill_border 3b425280   # nord1, 50% — рамка нейтральной пилюли
-pill_shape: &pill_shape {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, border-color: *pill_border}
+pill_shape: &pill_shape {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: *pill_border}
 pill:       &pill       {background: *pill_shape}
-pill_red:  &pill_red  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, border-color: bf616a80}}
-pill_purple:  &pill_purple  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, border-color: b48ead80}}
-pill_yellow:  &pill_yellow  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, border-color: ebcb8b80}}
-pill_orange:  &pill_orange  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, border-color: d0877080}}
-pill_blue:  &pill_blue  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, border-color: 81a1c180}}
-pill_cyan:  &pill_cyan  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, border-color: 88c0d080}}
-pill_green:  &pill_green  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, border-color: a3be8c80}}
+pill_red:  &pill_red  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: bf616a80}}
+pill_purple:  &pill_purple  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: b48ead80}}
+pill_yellow:  &pill_yellow  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: ebcb8b80}}
+pill_orange:  &pill_orange  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: d0877080}}
+pill_blue:  &pill_blue  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: 81a1c180}}
+pill_blue_dark:  &pill_blue_dark  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: 5e81ac80}}
+pill_cyan:  &pill_cyan  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: 88c0d080}}
+pill_green:  &pill_green  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: a3be8c80}}
 
 bar:
   background: 2e3440ff        # nord0
@@ -263,6 +270,26 @@ bar:
         foreground: 81a1c1ff
 
   right:
+    # ---- раскладка (xkb-monitor -> ~/.config/yambar/layout.sh)
+    - script:
+        path: ~/.config/yambar/layout.sh
+        content:
+          list:
+            spacing: 4
+            left-margin: 8
+            right-margin: 8
+            deco: *pill_blue_dark
+            # Ctrl+Shift через ydotool (uinput) — labwc видит его как физическую клавиатуру.
+            # 29 = LeftCtrl, 42 = LeftShift. Колесо вниз = два шага вперёд = назад при 3 раскладках.
+            on-click:
+              left: ydotool key 29:1 42:1 42:0 29:0
+              wheel-up: ydotool key 29:1 42:1 42:0 29:0
+              wheel-down: ydotool key 29:1 42:1 42:0 29:0 29:1 42:1 42:0 29:0
+            items:
+              - string: {text: "", font: *icon_font}
+              - string: {text: "{layout}"}
+        foreground: 5e81acff
+
     # ---- громкость mpd
     - mpd:
         host: /run/user/1000/mpd/socket
@@ -272,6 +299,11 @@ bar:
             left-margin: 8
             right-margin: 8
             deco: *pill_blue
+            on-click:
+              left: pavucontrol-qt
+              right: pavucontrol-qt
+              wheel-up: mpc volume +5
+              wheel-down: mpc volume -5
             items:
               - string: {text: "墳", font: *icon_font}
               - string: {text: "{volume}"}
@@ -353,6 +385,7 @@ bar:
 #   рамка пилюли          -> border-width / border-color в pill_<цвет> (сейчас 50%: ...80; плотнее: ...cc)
 #   линия под панелью     -> bar.border (bottom-width: 0 = убрать)
 #   тень                  -> shadow-size (длина размытия, 0 = без тени; bar.margin не меньше) и pill_shadow (цвет)
+#   подсветка под курсором -> pill_hover (убрать — удалить hover-color из якорей)
 #   размер текста         -> bar.font pixelsize; размер значков -> icon_font
 #   отступ текста внутри  -> left-margin / right-margin у list
 ```

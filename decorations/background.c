@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -18,6 +19,7 @@
  *   shadow-size:   N   px, soft shadow spreading around the shape (optional, default 0)
  *   shadow-color:  RRGGBBAA  shadow colour at its densest (required if shadow-size > 0)
  *   shadow-offset: N   px, shadow shift downwards (optional, default 1)
+ *   hover-color:   RRGGBBAA  fill colour while the pointer is over the shape (optional)
  *
  * The shadow is drawn outside the shape; parts beyond the bar edges are clipped.
  */
@@ -32,6 +34,8 @@ struct private
     int shadow_size;
     int shadow_offset;
     pixman_color_t shadow_color;
+    bool has_hover;
+    pixman_color_t hover_color;
 };
 
 static void
@@ -190,6 +194,10 @@ expose(const struct deco *deco, pixman_image_t *pix, int x, int y, int width, in
     const int h = height - 2 * d->margin;
     const int bw = d->border_width;
 
+    const bool hovered = d->has_hover && deco_hover_x >= x && deco_hover_x < x + width && deco_hover_y >= y
+                         && deco_hover_y < y + height;
+    const pixman_color_t *fill = hovered ? &d->hover_color : &d->color;
+
     if (d->shadow_size > 0)
         draw_shadow(pix, &d->shadow_color, x, top + d->shadow_offset, width, h, d->radius, d->shadow_size);
 
@@ -197,15 +205,15 @@ expose(const struct deco *deco, pixman_image_t *pix, int x, int y, int width, in
         /* Outline = outer shape in border colour, fill shape inset by bw on top.
          * An opaque fill colour gives a clean ring. */
         fill_rrect(pix, &d->border_color, x, top, width, h, d->radius);
-        fill_rrect(pix, &d->color, x + bw, top + bw, width - 2 * bw, h - 2 * bw,
+        fill_rrect(pix, fill, x + bw, top + bw, width - 2 * bw, h - 2 * bw,
                    d->radius - bw > 0 ? d->radius - bw : 0);
     } else
-        fill_rrect(pix, &d->color, x, top, width, h, d->radius);
+        fill_rrect(pix, fill, x, top, width, h, d->radius);
 }
 
 static struct deco *
 background_new(pixman_color_t color, int radius, int margin, int border_width, pixman_color_t border_color,
-               int shadow_size, int shadow_offset, pixman_color_t shadow_color)
+               int shadow_size, int shadow_offset, pixman_color_t shadow_color, const pixman_color_t *hover_color)
 {
     struct private *priv = calloc(1, sizeof(*priv));
     priv->color = color;
@@ -216,6 +224,9 @@ background_new(pixman_color_t color, int radius, int margin, int border_width, p
     priv->shadow_size = shadow_size;
     priv->shadow_offset = shadow_offset;
     priv->shadow_color = shadow_color;
+    priv->has_hover = hover_color != NULL;
+    if (hover_color != NULL)
+        priv->hover_color = *hover_color;
 
     struct deco *deco = calloc(1, sizeof(*deco));
     deco->private = priv;
@@ -242,6 +253,10 @@ from_conf(const struct yml_node *node)
     const struct yml_node *shadow_size = yml_get_value(node, "shadow-size");
     const struct yml_node *shadow_color = yml_get_value(node, "shadow-color");
     const struct yml_node *shadow_offset = yml_get_value(node, "shadow-offset");
+    const struct yml_node *hover_color = yml_get_value(node, "hover-color");
+    pixman_color_t hc = {0};
+    if (hover_color != NULL)
+        hc = conf_to_color(hover_color);
 
     const int ss = shadow_size != NULL && shadow_color != NULL ? yml_value_as_int(shadow_size) : 0;
     pixman_color_t sc = {0};
@@ -250,7 +265,8 @@ from_conf(const struct yml_node *node)
 
     return background_new(conf_to_color(color), radius != NULL ? yml_value_as_int(radius) : 0,
                           margin != NULL ? yml_value_as_int(margin) : 0, bw, bc, ss,
-                          shadow_offset != NULL ? yml_value_as_int(shadow_offset) : 1, sc);
+                          shadow_offset != NULL ? yml_value_as_int(shadow_offset) : 1, sc,
+                          hover_color != NULL ? &hc : NULL);
 }
 
 static bool
@@ -265,6 +281,7 @@ verify_conf(keychain_t *chain, const struct yml_node *node)
         {"shadow-size", false, &conf_verify_unsigned},
         {"shadow-color", false, &conf_verify_color},
         {"shadow-offset", false, &conf_verify_unsigned},
+        {"hover-color", false, &conf_verify_color},
         DECORATION_COMMON_ATTRS,
     };
 

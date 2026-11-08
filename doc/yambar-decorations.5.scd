@@ -58,6 +58,10 @@ bottom of the bar, with an outline and a soft shadow (yambar-wl).
 :  int
 :  no
 :  Shadow shift downwards, in pixels. Default 1.
+|  hover-color
+:  color
+:  no
+:  Fill color while the pointer is over the shape (yambar-wl).
 
 ## EXAMPLES
 

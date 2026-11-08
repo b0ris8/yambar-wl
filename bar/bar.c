@@ -16,6 +16,7 @@
 #define LOG_MODULE "bar"
 #define LOG_ENABLE_DBG 0
 #include "../log.h"
+#include "../decoration.h"
 
 #if defined(ENABLE_X11)
 #include "xcb.h"
@@ -185,6 +186,21 @@ output_name(const struct bar *bar)
     return b->backend.iface->output_name(bar);
 }
 
+/* yambar-wl: hover tracking. Remember which module is under the pointer and
+ * repaint only when that changes (or the pointer leaves the bar). */
+static const struct exposable *hover_exposable = NULL;
+
+static void
+hover_update(struct bar *_bar, const struct exposable *e, int x, int y)
+{
+    deco_hover_x = e != NULL ? x : -1;
+    deco_hover_y = e != NULL ? y : -1;
+    if (e != hover_exposable) {
+        hover_exposable = e;
+        _bar->refresh(_bar);
+    }
+}
+
 static void
 on_mouse(struct bar *_bar, enum mouse_event event, enum mouse_button btn, int x, int y)
 {
@@ -192,6 +208,7 @@ on_mouse(struct bar *_bar, enum mouse_event event, enum mouse_button btn, int x,
 
     if ((y < bar->border.top_width || y >= (bar->height_with_border - bar->border.bottom_width))
         || (x < bar->border.left_width || x >= (bar->width - bar->border.right_width))) {
+        hover_update(_bar, NULL, -1, -1);
         set_cursor(_bar, "left_ptr");
         return;
     }
@@ -208,6 +225,7 @@ on_mouse(struct bar *_bar, enum mouse_event event, enum mouse_button btn, int x,
 
         mx += bar->left_spacing;
         if (x >= mx && x < mx + e->width) {
+            hover_update(_bar, e, x, y);
             if (e->on_mouse != NULL)
                 e->on_mouse(e, _bar, event, btn, x - mx, y);
             return;
@@ -225,6 +243,7 @@ on_mouse(struct bar *_bar, enum mouse_event event, enum mouse_button btn, int x,
 
         mx += bar->left_spacing;
         if (x >= mx && x < mx + e->width) {
+            hover_update(_bar, e, x, y);
             if (e->on_mouse != NULL)
                 e->on_mouse(e, _bar, event, btn, x - mx, y);
             return;
@@ -243,6 +262,7 @@ on_mouse(struct bar *_bar, enum mouse_event event, enum mouse_button btn, int x,
 
         mx += bar->left_spacing;
         if (x >= mx && x < mx + e->width) {
+            hover_update(_bar, e, x, y);
             if (e->on_mouse != NULL)
                 e->on_mouse(e, _bar, event, btn, x - mx, y);
             return;
@@ -251,6 +271,7 @@ on_mouse(struct bar *_bar, enum mouse_event event, enum mouse_button btn, int x,
         mx += e->width + bar->right_spacing;
     }
 
+    hover_update(_bar, NULL, -1, -1);
     set_cursor(_bar, "left_ptr");
 }
 
