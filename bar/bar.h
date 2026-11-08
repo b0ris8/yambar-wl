@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+
 #include "../color.h"
 #include "../font-shaping.h"
 #include "../module.h"
@@ -26,6 +28,7 @@ struct bar_config {
 
     const char *monitor;
     enum bar_layer layer;
+    bool exclusive; /* yambar-wl: reserve screen space (exclusive zone); false = windows may cover the bar */
     enum bar_location location;
     enum font_shaping font_shaping;
     int height;

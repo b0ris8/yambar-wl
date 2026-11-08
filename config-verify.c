@@ -437,6 +437,7 @@ conf_verify_bar(const struct yml_node *bar)
 
         {"monitor", false, &conf_verify_string},
         {"layer", false, &verify_bar_layer},
+        {"exclusive", false, &conf_verify_bool},
 
         {"spacing", false, &conf_verify_unsigned},
         {"left-spacing", false, &conf_verify_unsigned},

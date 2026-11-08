@@ -1028,10 +1028,13 @@ update_size(struct wayland_backend *backend)
     bar->height_with_border = height;
 
     zwlr_layer_surface_v1_set_size(backend->layer_surface, 0, bar->height_with_border / scale);
+    /* yambar-wl: exclusive: false -> no reserved space, windows (incl. maximized) cover the bar */
     zwlr_layer_surface_v1_set_exclusive_zone(
         backend->layer_surface,
-        (bar->height_with_border + (bar->location == BAR_TOP ? bar->border.bottom_margin : bar->border.top_margin))
-            / scale);
+        bar->exclusive ? (bar->height_with_border
+                          + (bar->location == BAR_TOP ? bar->border.bottom_margin : bar->border.top_margin))
+                             / scale
+                       : 0);
 
     zwlr_layer_surface_v1_set_margin(backend->layer_surface, bar->border.top_margin / scale,
                                      bar->border.right_margin / scale, bar->border.bottom_margin / scale,

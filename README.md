@@ -42,6 +42,10 @@ ldd build/yambar | grep -Ei 'xcb|x11|dbus|systemd|elogind' || echo чисто
 
 У `underline` — `inset`: укоротить линию на N px с обеих сторон.
 
+У панели новый параметр `exclusive` (по умолчанию `true`). С `exclusive: false` панель не резервирует место
+на экране: окна, в том числе развёрнутые, занимают весь экран и перекрывают её (вместе с `layer: bottom` —
+панель «позади окон», видна на пустом рабочем столе).
+
 Панель следит за курсором и перерисовывается, когда он переходит на другой модуль или уходит с панели —
 так работает `hover-color`. На каждое движение мыши внутри одного модуля перерисовки нет.
 
@@ -158,7 +162,7 @@ pill_bg: &pill_bg 232731ff
 # пилюля = height - 2*margin. Рамка пилюли — цветом модуля (pill_<цвет>),
 # у нейтральной пилюли (pill) — pill_border.
 pill_shadow: &pill_shadow 16191f99   # тень пилюли: 16191f, 60% у рамки, плавно к нулю за shadow-size
-pill_hover: &pill_hover 4c566aff     # nord3 — фон пилюли под курсором (мягче: 434c5eff, nord2)
+pill_hover: &pill_hover 2e3440ff     # nord3 — фон пилюли под курсором (мягче: 434c5eff, nord2)
 pill_border: &pill_border 3b425280   # nord1, 50% — рамка нейтральной пилюли
 pill_shape: &pill_shape {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: *pill_border}
 pill:       &pill       {background: *pill_shape}
@@ -170,6 +174,7 @@ pill_blue:  &pill_blue  {background: {color: *pill_bg, radius: 5, margin: 4, bor
 pill_blue_dark:  &pill_blue_dark  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: 5e81ac80}}
 pill_cyan:  &pill_cyan  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: 88c0d080}}
 pill_green:  &pill_green  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: a3be8c80}}
+pill_green_cyan:  &pill_green_cyan  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, border-color: 8fbcbb80}}
 
 bar:
   background: 2e3440ff        # nord0
@@ -184,6 +189,7 @@ bar:
   margin: 8                   # слева/справа: место для тени крайних пилюль (= shadow-size)
   spacing: 4                  # промежуток между пилюлями = 2 × spacing
   layer: bottom
+  exclusive: false            # не резервировать место: окна (и развёрнутые) перекрывают панель
 
   left:
     # ---- питание: ПКМ — выключить, СКМ — перезагрузить
@@ -263,11 +269,13 @@ bar:
             spacing: 6
             left-margin: 10
             right-margin: 10
-            deco: *pill_blue
+            deco: *pill_green_cyan
+            on-click:
+              left: cantata
             items:
               - string: {text: "", font: *icon_font}
               - string: {text: "{artist} - {title}"}
-        foreground: 81a1c1ff
+        foreground: 8fbcbbff
 
   right:
     # ---- раскладка (xkb-monitor -> ~/.config/yambar/layout.sh)

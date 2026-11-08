@@ -468,6 +468,7 @@ bar_new(const struct bar_config *config)
     struct private *priv = calloc(1, sizeof(*priv));
     priv->monitor = config->monitor != NULL ? strdup(config->monitor) : NULL;
     priv->layer = config->layer;
+    priv->exclusive = config->exclusive;
     priv->location = config->location;
     priv->height = config->height;
     priv->background = config->background;

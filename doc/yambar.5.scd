@@ -56,6 +56,12 @@ types that are frequently used:
 :  no
 :  Layer to put bar on. One of _overlay_, _top_, _bottom_ or
    _background_. Wayland only. Default: _bottom_.
+|  exclusive
+:  bool
+:  no
+:  Reserve screen space for the bar (exclusive zone). With _false_, windows,
+   maximized ones included, use the whole screen and cover the bar.
+   Wayland only, yambar-wl. Default: _true_.
 |  left-spacing
 :  int
 :  no

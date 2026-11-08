@@ -290,6 +290,7 @@ conf_to_bar(const struct yml_node *bar, enum bar_backend backend)
     struct bar_config conf = {
         .backend = backend,
         .layer = BAR_LAYER_BOTTOM,
+        .exclusive = true,
         .font_shaping = FONT_SHAPE_FULL,
     };
 
@@ -328,6 +329,10 @@ conf_to_bar(const struct yml_node *bar, enum bar_backend backend)
         else
             assert(false);
     }
+
+    const struct yml_node *exclusive = yml_get_value(bar, "exclusive");
+    if (exclusive != NULL)
+        conf.exclusive = yml_value_as_bool(exclusive);
 
     const struct yml_node *spacing = yml_get_value(bar, "spacing");
     if (spacing != NULL)
