@@ -1,160 +1,151 @@
-[![CI status](https://ci.codeberg.org/api/badges/dnkl/yambar/status.svg)](https://ci.codeberg.org/dnkl/yambar)
+# yambar-wl
 
-# Yambar
+Панель для Wayland-композиторов (labwc, sway, river, niri…): форк [yambar](https://codeberg.org/dnkl/yambar),
+только Wayland, без X11, D-Bus, systemd/elogind и xdg-desktop-portal.
 
-**This project is not developed anymore, and this repository will be
-archived in a near future**.
+Оригинал заброшен автором (последний коммит `abeffbd` «readme: goodbye!», май 2025), так что дальше он живёт здесь.
+Его README сохранён как [README.upstream.md](README.upstream.md).
 
-I do not have neither the time nor the will to work on this
-anymore. Mainly because I do not use a bar myself anymore.
+---
 
-There are also technical difficulties, caused by the fact that yambar
-was initially X11, and only later was Wayland support added.
+## Чем отличается от yambar
 
-This means I have to maintain a backend (X11) I have not used myself
-in many years, as well as trying to work around technical limitations
-imposed by the way both X11 and Wayland is supported, As my own use of
-a bar has dwindled, the will to refactor and improve the backends has
-disappeared.
+**Зависимости.** По умолчанию выключено всё, что тянет X11 или шину:
 
-Yambar has seen a lot of contributions, for which I am very
-grateful. I hope that means someone is willing to pick up where I left
-of, and continue working on yambar. If not, we at least had a good
-run; the first commit was in late 2018, roughly 6½ years ago!
+| Опция meson      | yambar   | yambar-wl | Почему                                                |
+|------------------|----------|-----------|-------------------------------------------------------|
+| `backend-x11`    | enabled  | disabled  | только Wayland                                        |
+| `plugin-mpris`   | enabled  | disabled  | D-Bus через libsystemd / elogind / basu               |
+| `plugin-xkb`     | auto     | disabled  | X11                                                   |
+| `plugin-xwindow` | auto     | disabled  | X11                                                   |
 
+К xdg-desktop-portal yambar не обращается вообще. Проверка после сборки:
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/yambar.svg?columns=4)](https://repology.org/project/yambar/versions)
+```bash
+ldd build/yambar | grep -Ei 'xcb|x11|dbus|systemd|elogind' || echo чисто
+```
 
+**Пилюли.** У декорации `background` новые параметры — скругление, отступ от краёв панели, рамка и мягкая тень:
 
-## Index
+| Параметр        | Что делает                                                        | По умолчанию |
+|-----------------|-------------------------------------------------------------------|--------------|
+| `radius`        | скругление углов, px (больше половины высоты — режется)           | 0            |
+| `margin`        | отступ фона от верха и низа панели, px                            | 0            |
+| `border-width`  | толщина рамки внутри формы, px; нужен `border-color`              | 0            |
+| `border-color`  | цвет рамки, `RRGGBBAA`                                            | —            |
+| `shadow-size`   | длина размытия тени вокруг формы, px; нужен `shadow-color`        | 0            |
+| `shadow-color`  | цвет тени у края формы, дальше плавно до прозрачного              | —            |
+| `shadow-offset` | сдвиг тени вниз, px                                               | 1            |
 
-1. [Introduction](#introduction)
-1. [Configuration](#configuration)
-1. [Modules](#modules)
-1. [Installation](#installation)
-1. [Bugs](#bugs)
+У `underline` — `inset`: укоротить линию на N px с обеих сторон.
 
+Панель разрешает декорациям заходить в свои боковые поля (`bar.margin`), чтобы тень крайних пилюль не обрезалась.
+Текст и значки туда как не попадали, так и не попадают.
 
-## Introduction
+Всё описано в `man yambar-decorations` после установки или в [doc/yambar-decorations.5.scd](doc/yambar-decorations.5.scd).
 
-![screenshot](screenshot.png "Example configuration")
+---
 
-**yambar** is a lightweight and configurable status panel (_bar_, for
-short) for X11 and Wayland, that goes to great lengths to be both CPU
-and battery efficient - polling is only done when **absolutely**
-necessary.
+## Сборка и установка
 
-It has a number of _modules_ that provide information in the form of
-_tags_. For example, the _clock_ module has a _date_ tag that contains
-the current date.
+Нужны пакеты (Arch / Artix):
 
-The modules do not know _how_ to present the information though. This
-is instead done by _particles_. And the user, you, decides _which_
-particles (and thus _how_ to present the data) to use.
+```bash
+sudo pacman -S --needed meson ninja scdoc tllist fcft pixman libyaml wayland wayland-protocols flex bison
+# по желанию, для модулей: alsa-lib libmpdclient libpulse pipewire json-c
+```
 
-Furthermore, each particle can have a _decoration_ - a background
-color or a graphical underline, for example.
+Сборка и установка в `~/.local/bin`, без root:
 
-There is **no** support for images or icons. use an icon font
-(e.g. _Font Awesome_, or _Material Icons_) if you want a graphical
-representation.
+```bash
+git clone https://github.com/b0ris8/yambar-wl.git
+cd yambar-wl
+meson setup build --buildtype=release --wrap-mode=nofallback
+ninja -C build
+install -m755 build/yambar ~/.local/bin/
+```
 
-There are a number of modules and particles builtin. More can be added
-as plugins. You can even write your own!
+Бинарник называется `yambar`, конфиг — `~/.config/yambar/config.yml`, как у оригинала.
+Если в системе остался пакетный yambar, запускайте по полному пути `~/.local/bin/yambar`
+или удалите пакет: `sudo pacman -R yambar`.
 
-To summarize: a _bar_ displays information provided by _modules_,
-using _particles_ and _decorations_. **How** is configured by you.
+Обновить после изменений в коде:
 
+```bash
+git pull
+ninja -C build && install -m755 build/yambar ~/.local/bin/
+```
 
-## Configuration
+Если папку репозитория переносили — сначала `rm -rf build` и заново `meson setup`: build хранит абсолютные пути.
 
-Yambar is configured using YAML, in `~/.config/yambar/config.yml`. It
-must define a top-level dictionary named **bar**:
+---
+
+## Конфиг
+
+Готовый пример в стиле пилюль (Nord + тёмные `#232731` / `#16191f`): [examples/configurations/pill.yml](examples/configurations/pill.yml).
+
+```bash
+cp examples/configurations/pill.yml ~/.config/yambar/config.yml
+~/.local/bin/yambar --validate
+```
+
+Основа — фон с рамкой и тенью вешается на весь `list`, а не на каждую строку, тогда пилюля одна на модуль:
 
 ```yaml
+pill_bg: &pill_bg 232731ff
+pill_shadow: &pill_shadow 16191fff
+pill_cyan: &pill_cyan
+  background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, border-color: 88c0d080,
+               shadow-size: 8, shadow-color: *pill_shadow}
+
 bar:
-  height: 26
-  location: top
-  background: 000000ff
-
+  height: 28        # пилюля = height - 2*margin
+  margin: 8         # боковые поля под тень крайних пилюль (>= shadow-size)
+  spacing: 4        # промежуток между пилюлями = 2*spacing
+  ...
   right:
-    - clock:
+    - cpu:
         content:
-          - string: {text: , font: "Font Awesome 6 Free:style=solid:size=12"}
-          - string: {text: "{date}", right-margin: 5}
-          - string: {text: , font: "Font Awesome 6 Free:style=solid:size=12"}
-          - string: {text: "{time}"}
+          map:
+            conditions:
+              id == -1:
+                list:
+                  left-margin: 8
+                  right-margin: 8
+                  deco: *pill_cyan
+                  items:
+                    - string: {text: "{cpu}%"}
 ```
 
-For details, see the man pages (**yambar**(5) is a good start).
+Что крутить:
 
-Example configurations can be found in [examples](examples/configurations).
+| Хочу                              | Где                                                     |
+|-----------------------------------|---------------------------------------------------------|
+| скругление больше / меньше        | `radius`; 0 — прямые углы, половина высоты — капсула     |
+| пилюля ниже / выше                | `bar.height` и `margin`                                 |
+| рамка ярче / тише                 | альфа в `border-color`: `...80` — 50%, `...cc` — 80%    |
+| тень длиннее / короче             | `shadow-size`; `bar.margin` не меньше                    |
+| тень плотнее / светлее            | цвет `shadow-color`                                     |
+| отступ текста внутри пилюли       | `left-margin` / `right-margin` у `list`                 |
 
+Стоковый yambar на этих ключах откажется стартовать (`invalid key: radius`) — значит, запустился не тот бинарник.
 
-## Modules
+---
 
-Available modules:
+## Запуск
 
-* alsa
-* backlight
-* battery
-* clock
-* cpu
-* disk-io
-* dwl
-* foreign-toplevel
-* i3 (and Sway)
-* label
-* mem
-* mpd
-* network
-* pipewire
-* pulse
-* removables
-* river
-* script (see script [examples](examples/scripts))
-* sway-xkb
-* xkb (_XCB backend only_)
-* xwindow (_XCB backend only_)
+В `~/.config/labwc/autostart`:
 
-
-## Installation
-
-To build, first, create a build directory, and switch to it:
 ```sh
-mkdir -p bld/release && cd bld/release
+"$HOME/.local/bin/yambar" &
 ```
 
-Second, configure the build (if you intend to install it globally, you
-might also want `--prefix=/usr`):
-```sh
-meson setup --buildtype=release ../..
-```
+Перезапуск из любого места с dbus-окружением сессии labwc — скрипты `yambar-restart` и `restart-desktop-apps`
+(в репозитории `infra`); в них тоже полный путь `$HOME/.local/bin/yambar`.
 
-Optionally, explicitly disable a backend (or enable, if you want a
-configuration error if not all dependencies are met) by adding either
-`-Dbackend-x11=disabled|enabled` or
-`-Dbackend-wayland=disabled|enabled` to the meson command line.
+---
 
-Three, build it:
-```sh
-ninja
-```
+## Происхождение и лицензия
 
-Optionally, install it:
-```sh
-ninja install
-```
-
-## Bugs
-
-Please report bugs to https://codeberg.org/dnkl/yambar/issues
-
-The report should contain the following:
-
-* Which Wayland compositor (and version) you are running
-* Yambar version (`yambar --version`)
-* Log output from yambar (start yambar from a terminal)
-* If reporting a crash, please try to provide a `bt full` backtrace
-  **with symbols** (i.e. use a debug build)
-* Steps to reproduce. The more details the better
+Форк [dnkl/yambar](https://codeberg.org/dnkl/yambar) с коммита `abeffbd`, удалёнка `upstream`.
+Лицензия MIT, как у оригинала — [LICENSE](LICENSE).

@@ -16,7 +16,9 @@ are no common attributes.
 
 # BACKGROUND
 
-This decoration sets the particles background color.
+This decoration sets the particles background color. Optionally the
+background is drawn as a rounded rectangle, inset from the top and
+bottom of the bar, with an outline and a soft shadow (yambar-wl).
 
 ## CONFIGURATION
 
@@ -28,6 +30,34 @@ This decoration sets the particles background color.
 :  color
 :  yes
 :  The background color. See *yambar*(5) for format.
+|  radius
+:  int
+:  no
+:  Corner radius, in pixels. Default 0 (square corners). Clamped to half the height/width.
+|  margin
+:  int
+:  no
+:  Vertical inset from the top and bottom of the bar, in pixels. Default 0.
+|  border-width
+:  int
+:  no
+:  Width of an outline drawn inside the shape, in pixels. Default 0. Requires *border-color*.
+|  border-color
+:  color
+:  no
+:  Color of the outline.
+|  shadow-size
+:  int
+:  no
+:  Length of a soft shadow around the shape, in pixels. Default 0. Requires *shadow-color*. Parts outside the bar are clipped.
+|  shadow-color
+:  color
+:  no
+:  Shadow color at the shape edge; fades to transparent at *shadow-size*.
+|  shadow-offset
+:  int
+:  no
+:  Shadow shift downwards, in pixels. Default 1.
 
 ## EXAMPLES
 
@@ -37,6 +67,26 @@ content:
     deco:
       background:
         color: 00ff00ff
+```
+
+Rounded "pill" with outline and shadow, applied to a whole list:
+
+```
+content:
+  list:
+    left-margin: 8
+    right-margin: 8
+    deco:
+      background:
+        color: 232731ff
+        radius: 5
+        margin: 4
+        border-width: 1
+        border-color: 88c0d080
+        shadow-size: 8
+        shadow-color: 16191fff
+    items:
+      - string: {text: "{cpu}%"}
 ```
 
 # UNDERLINE
@@ -54,6 +104,10 @@ bottom of the particle.
 :  int
 :  yes
 :  The size (height/thickness) of the line, in pixels
+|  inset
+:  int
+:  no
+:  Shrink the line by this many pixels on both sides (yambar-wl). Default 0.
 |  color
 :  color
 :  yes
