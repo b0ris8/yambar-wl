@@ -129,10 +129,11 @@ expose(const struct bar *_bar)
     int y = bar->border.top_width;
     int x = bar->border.left_width + bar->left_margin - bar->left_spacing;
     pixman_region32_t clip;
-    pixman_region32_init_rect(
-        &clip, bar->border.left_width + bar->left_margin, bar->border.top_width,
-        (bar->width - bar->left_margin - bar->right_margin - bar->border.left_width - bar->border.right_width),
-        bar->height);
+    /* Clip to the area inside the border, margins included: content never
+     * starts there, but decoration shadows of the outermost particles may
+     * spill into it. */
+    pixman_region32_init_rect(&clip, bar->border.left_width, bar->border.top_width,
+                              (bar->width - bar->border.left_width - bar->border.right_width), bar->height);
     pixman_image_set_clip_region32(pix, &clip);
     pixman_region32_fini(&clip);
 

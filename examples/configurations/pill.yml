@@ -11,7 +11,7 @@ pill_bg: &pill_bg 232731ff
 # Форма пилюли: radius — скругление углов, margin — отступ от верха/низа панели,
 # пилюля = height - 2*margin. Рамка пилюли — цветом модуля (pill_<цвет>),
 # у нейтральной пилюли (pill) — pill_border.
-pill_shadow: &pill_shadow 000000aa   # тень пилюли: чёрный ~67% у рамки, плавно к нулю за 8 px
+pill_shadow: &pill_shadow 16191fff   # тень пилюли: темнее 1d2129 в тон Nord, плавно к нулю за 8 px
 pill_border: &pill_border 3b425280   # nord1, 50% — рамка нейтральной пилюли
 pill_shape: &pill_shape {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, border-color: *pill_border}
 pill:       &pill       {background: *pill_shape}
@@ -33,7 +33,7 @@ bar:
   border:
     bottom-width: 1           # линия под панелью вместо тени
     color: 1d2129ff
-  margin: 6                   # слева/справа: место для тени крайних пилюль
+  margin: 8                   # слева/справа: место для тени крайних пилюль (= shadow-size)
   spacing: 4                  # промежуток между пилюлями = 2 × spacing
   layer: bottom
 
@@ -211,6 +211,6 @@ bar:
 #   высота пилюли         -> bar.height и pill_shape.margin (пилюля = height - 2*margin)
 #   рамка пилюли          -> border-width / border-color в pill_<цвет> (сейчас 50%: ...80; плотнее: ...cc)
 #   линия под панелью     -> bar.border (bottom-width: 0 = убрать)
-#   тень                  -> shadow-size (длина размытия, 0 = без тени) и pill_shadow (плотность)
+#   тень                  -> shadow-size (длина размытия, 0 = без тени; bar.margin не меньше) и pill_shadow (цвет)
 #   размер текста         -> bar.font pixelsize; размер значков -> icon_font
 #   отступ текста внутри  -> left-margin / right-margin у list
