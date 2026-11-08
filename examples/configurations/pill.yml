@@ -1,0 +1,214 @@
+# ~/.config/yambar/config.yml — стиль «пилюли» (Nord + свои тёмные)
+# ТРЕБУЕТ пропатченный yambar (ветка pill): background.radius / margin / border-width / border-color,
+# underline.inset. Стоковый yambar на этих ключах откажется стартовать.
+
+icon_font: &icon_font 'Symbols Nerd Font:pixelsize=14'
+
+# Polar Night: nord0 2e3440, nord1 3b4252, nord2 434c5e, nord3 4c566a
+# + свои тёмные: 232731, 1d2129
+pill_bg: &pill_bg 232731ff
+
+# Форма пилюли: radius — скругление углов, margin — отступ от верха/низа панели.
+# Пилюля = height - 2*margin; подчёркивание (size 2) ложится в нижний отступ, под пилюлю.
+pill_border: &pill_border 3b4252ff   # nord1 — рамка пилюли (ярче: 4c566aff)
+pill_shape: &pill_shape {color: *pill_bg, radius: 5, margin: 4, border-width: 1, border-color: *pill_border}
+pill:       &pill       {background: *pill_shape}
+pill_red:  &pill_red  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: bf616acc}}]}
+pill_purple:  &pill_purple  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: b48eadcc}}]}
+pill_yellow:  &pill_yellow  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: ebcb8bcc}}]}
+pill_orange:  &pill_orange  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: d08770cc}}]}
+pill_blue:  &pill_blue  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: 81a1c1cc}}]}
+pill_cyan:  &pill_cyan  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: 88c0d0cc}}]}
+pill_green:  &pill_green  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: a3be8ccc}}]}
+
+bar:
+  background: 2e3440ff        # nord0
+  foreground: d8dee9ff        # nord4
+  font: 'cascadia code'
+
+  location: top
+  height: 28                  # пилюля 20 + отступы 4+4
+  border:
+    bottom-width: 1           # линия под панелью вместо тени
+    color: 1d2129ff
+  margin: 0
+  spacing: 3                  # промежуток между пилюлями = 2 × spacing
+  layer: bottom
+
+  left:
+    # ---- питание: ПКМ — выключить, СКМ — перезагрузить
+    - label:
+        content:
+          list:
+            spacing: 0
+            left-margin: 8
+            right-margin: 8
+            deco: *pill_red
+            on-click:
+              right: sudo poweroff
+              middle: sudo reboot
+            items:
+              - string: {text: "", font: *icon_font, foreground: bf616aff}
+
+    # ---- память
+    - mem:
+        poll-interval: 2000
+        content:
+          list:
+            spacing: 4
+            left-margin: 8
+            right-margin: 8
+            deco: *pill_purple
+            on-click:
+              left: qps
+              middle: wezterm -e htop
+            items:
+              - string: {text: ""}
+              - string: {text: "{used:gib}Gb {percent_used}%"}
+        foreground: b48eadff
+
+    # ---- температура (continuous, sysfs напрямую)
+    - script:
+        path: ~/.config/yambar/sensors.sh
+        content:
+          list:
+            spacing: 4
+            left-margin: 8
+            right-margin: 8
+            deco: *pill_yellow
+            on-click:
+              left: qps
+              middle: wezterm -e htop
+            items:
+              - string: {text: ""}
+              - string: {text: "{temp}°C"}
+        foreground: ebcb8bff
+
+    # ---- процессор (id == -1 — суммарно по всем ядрам)
+    - cpu:
+        poll-interval: 2000
+        content:
+          map:
+            conditions:
+              id == -1:
+                list:
+                  spacing: 4
+                  left-margin: 8
+                  right-margin: 8
+                  deco: *pill_orange
+                  on-click:
+                    left: qps
+                    middle: wezterm -e htop
+                  items:
+                    - string: {text: ""}
+                    - string: {text: "{cpu}%"}
+        foreground: d08770ff
+
+  center:
+    # ---- что играет
+    - mpd:
+        host: /run/user/1000/mpd/socket
+        content:
+          list:
+            spacing: 6
+            left-margin: 10
+            right-margin: 10
+            deco: *pill_blue
+            items:
+              - string: {text: ""}
+              - string: {text: "{artist} - {title}"}
+        foreground: 81a1c1ff
+
+  right:
+    # ---- громкость mpd
+    - mpd:
+        host: /run/user/1000/mpd/socket
+        content:
+          list:
+            spacing: 4
+            left-margin: 8
+            right-margin: 8
+            deco: *pill_blue
+            items:
+              - string: {text: "墳"}
+              - string: {text: "{volume}"}
+        foreground: 81a1c1ff
+    ##- pulse:
+    ##    content:
+    ##      string: {text: "{sink_percent}% ({sink_port})"}
+
+    # ---- управление плеером: одна пилюля на три кнопки
+    - label:
+        content:
+          list:
+            spacing: 12
+            left-margin: 10
+            right-margin: 10
+            deco: *pill_cyan
+            items:
+              - string:
+                  text: ""
+                  font: *icon_font
+                  foreground: 88c0d0ff
+                  on-click: mpc prev
+              - string:
+                  text: ""
+                  font: *icon_font
+                  foreground: 88c0d0ff
+                  on-click:
+                    left: mpc toggle
+                    middle: /home/admin/.local/bin/unrated-playlist-gen
+                    right: cantata
+                    wheel-up: mpc volume +5
+                    wheel-down: mpc volume -5
+              - string:
+                  text: ""
+                  font: *icon_font
+                  foreground: 88c0d0ff
+                  on-click: mpc next
+
+    # ---- обновления: значок + счётчик в одной пилюле
+    - script:
+        path: ~/.config/yambar/checkupdates.sh   # continuous: раз в час + SIGUSR1
+        content:
+          map:
+            on-click:
+              left: sh -c 'wezterm -e yay; pkill -USR1 -f yambar/checkupdates.sh'
+              right: pkill -USR1 -f yambar/checkupdates.sh
+            default:
+              list:
+                spacing: 4
+                left-margin: 8
+                right-margin: 8
+                deco: *pill
+                items:
+                  - string: {text: "", font: *icon_font, foreground: a3be8c80}
+                  - string: {text: "0", foreground: a3be8c80}
+            conditions:
+              ~ok:
+                list:
+                  spacing: 4
+                  left-margin: 8
+                  right-margin: 8
+                  deco: *pill_red
+                  items:
+                    - string: {text: "", font: *icon_font, foreground: bf616aff}
+                    - string: {text: "{updates}?", foreground: bf616aff}
+              updates > 0:
+                list:
+                  spacing: 4
+                  left-margin: 8
+                  right-margin: 8
+                  deco: *pill_green
+                  items:
+                    - string: {text: "", font: *icon_font, foreground: a3be8cff}
+                    - string: {text: "{updates}", foreground: a3be8cff}
+
+# Подгонка (только якоря наверху):
+#   скругление            -> pill_shape.radius (0 = прямые углы, 10 = полная «капсула» при пилюле 20)
+#   высота пилюли         -> bar.height и pill_shape.margin (пилюля = height - 2*margin)
+#   зазор пилюля/полоска  -> pill_shape.margin - size подчёркивания (сейчас 4-2 = 2 px)
+#   рамка пилюли          -> pill_border и border-width в pill_shape (0 = без рамки)
+#   линия под панелью     -> bar.border (bottom-width: 0 = убрать)
+#   длина полоски         -> inset в pill_<цвет> (отступ полоски от краёв пилюли)
+#   отступ текста внутри  -> left-margin / right-margin у list
