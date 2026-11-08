@@ -1,6 +1,6 @@
 # ~/.config/yambar/config.yml — стиль «пилюли» (Nord + свои тёмные)
-# ТРЕБУЕТ пропатченный yambar (ветка pill): background.radius / margin / border-width / border-color,
-# underline.inset. Стоковый yambar на этих ключах откажется стартовать.
+# ТРЕБУЕТ пропатченный yambar (ветка pill): background.radius / margin / border-* / shadow-*.
+# Стоковый yambar на этих ключах откажется стартовать.
 
 icon_font: &icon_font 'Symbols Nerd Font:pixelsize=14'
 
@@ -8,23 +8,25 @@ icon_font: &icon_font 'Symbols Nerd Font:pixelsize=14'
 # + свои тёмные: 232731, 1d2129
 pill_bg: &pill_bg 232731ff
 
-# Форма пилюли: radius — скругление углов, margin — отступ от верха/низа панели.
-# Пилюля = height - 2*margin; подчёркивание (size 2) ложится в нижний отступ, под пилюлю.
-pill_border: &pill_border 3b4252ff   # nord1 — рамка пилюли (ярче: 4c566aff)
-pill_shape: &pill_shape {color: *pill_bg, radius: 5, margin: 4, border-width: 1, border-color: *pill_border}
+# Форма пилюли: radius — скругление углов, margin — отступ от верха/низа панели,
+# пилюля = height - 2*margin. Рамка пилюли — цветом модуля (pill_<цвет>),
+# у нейтральной пилюли (pill) — pill_border.
+pill_shadow: &pill_shadow 00000099   # тень пилюли: чёрный 60% в самом плотном месте
+pill_border: &pill_border 3b425280   # nord1, 50% — рамка нейтральной пилюли
+pill_shape: &pill_shape {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: *pill_border}
 pill:       &pill       {background: *pill_shape}
-pill_red:  &pill_red  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: bf616acc}}]}
-pill_purple:  &pill_purple  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: b48eadcc}}]}
-pill_yellow:  &pill_yellow  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: ebcb8bcc}}]}
-pill_orange:  &pill_orange  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: d08770cc}}]}
-pill_blue:  &pill_blue  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: 81a1c1cc}}]}
-pill_cyan:  &pill_cyan  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: 88c0d0cc}}]}
-pill_green:  &pill_green  {stack: [{background: *pill_shape}, {underline: {size: 2, inset: 6, color: a3be8ccc}}]}
+pill_red:  &pill_red  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: bf616a80}}
+pill_purple:  &pill_purple  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: b48ead80}}
+pill_yellow:  &pill_yellow  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: ebcb8b80}}
+pill_orange:  &pill_orange  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: d0877080}}
+pill_blue:  &pill_blue  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: 81a1c180}}
+pill_cyan:  &pill_cyan  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: 88c0d080}}
+pill_green:  &pill_green  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 3, shadow-color: *pill_shadow, border-color: a3be8c80}}
 
 bar:
   background: 2e3440ff        # nord0
   foreground: d8dee9ff        # nord4
-  font: 'cascadia code'
+  font: 'cascadia code:pixelsize=13'   # текст; значки — icon_font
 
   location: top
   height: 28                  # пилюля 20 + отступы 4+4
@@ -63,7 +65,7 @@ bar:
               left: qps
               middle: wezterm -e htop
             items:
-              - string: {text: ""}
+              - string: {text: "", font: *icon_font}
               - string: {text: "{used:gib}Gb {percent_used}%"}
         foreground: b48eadff
 
@@ -80,7 +82,7 @@ bar:
               left: qps
               middle: wezterm -e htop
             items:
-              - string: {text: ""}
+              - string: {text: "", font: *icon_font}
               - string: {text: "{temp}°C"}
         foreground: ebcb8bff
 
@@ -100,7 +102,7 @@ bar:
                     left: qps
                     middle: wezterm -e htop
                   items:
-                    - string: {text: ""}
+                    - string: {text: "", font: *icon_font}
                     - string: {text: "{cpu}%"}
         foreground: d08770ff
 
@@ -115,7 +117,7 @@ bar:
             right-margin: 10
             deco: *pill_blue
             items:
-              - string: {text: ""}
+              - string: {text: "", font: *icon_font}
               - string: {text: "{artist} - {title}"}
         foreground: 81a1c1ff
 
@@ -130,7 +132,7 @@ bar:
             right-margin: 8
             deco: *pill_blue
             items:
-              - string: {text: "墳"}
+              - string: {text: "墳", font: *icon_font}
               - string: {text: "{volume}"}
         foreground: 81a1c1ff
     ##- pulse:
@@ -141,9 +143,9 @@ bar:
     - label:
         content:
           list:
-            spacing: 12
-            left-margin: 10
-            right-margin: 10
+            spacing: 8
+            left-margin: 6
+            right-margin: 6
             deco: *pill_cyan
             items:
               - string:
@@ -207,8 +209,8 @@ bar:
 # Подгонка (только якоря наверху):
 #   скругление            -> pill_shape.radius (0 = прямые углы, 10 = полная «капсула» при пилюле 20)
 #   высота пилюли         -> bar.height и pill_shape.margin (пилюля = height - 2*margin)
-#   зазор пилюля/полоска  -> pill_shape.margin - size подчёркивания (сейчас 4-2 = 2 px)
-#   рамка пилюли          -> pill_border и border-width в pill_shape (0 = без рамки)
+#   рамка пилюли          -> border-width / border-color в pill_<цвет> (сейчас 50%: ...80; плотнее: ...cc)
 #   линия под панелью     -> bar.border (bottom-width: 0 = убрать)
-#   длина полоски         -> inset в pill_<цвет> (отступ полоски от краёв пилюли)
+#   тень                  -> shadow-size (0 = без тени) и pill_shadow; держите margin >= shadow-size + 1
+#   размер текста         -> bar.font pixelsize; размер значков -> icon_font
 #   отступ текста внутри  -> left-margin / right-margin у list
