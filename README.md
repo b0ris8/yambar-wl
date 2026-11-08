@@ -103,10 +103,10 @@ cp examples/configurations/pill.yml ~/.config/yambar/config.yml
 
 ```yaml
 pill_bg: &pill_bg 232731ff
-pill_shadow: &pill_shadow 16191fff
+# тень — цвет рамки 50/50 с 16191f, 60%: сливается с рамкой, но темнее
 pill_cyan: &pill_cyan
   background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, border-color: 88c0d080,
-               shadow-size: 8, shadow-color: *pill_shadow}
+               shadow-size: 8, shadow-color: 4f6c7899}
 
 bar:
   height: 28        # пилюля = height - 2*margin
@@ -135,7 +135,7 @@ bar:
 | пилюля ниже / выше                | `bar.height` и `margin`                                 |
 | рамка ярче / тише                 | альфа в `border-color`: `...80` — 50%, `...cc` — 80%    |
 | тень длиннее / короче             | `shadow-size`; `bar.margin` не меньше                    |
-| тень плотнее / светлее            | цвет `shadow-color`                                     |
+| тень темнее / ярче                | `shadow-color`: смесь цвета рамки с `16191f`, альфа `99` |
 | подсветка под курсором            | `hover-color` (сейчас nord3 `4c566a`)                   |
 | отступ текста внутри пилюли       | `left-margin` / `right-margin` у `list`                 |
 
@@ -161,20 +161,22 @@ pill_bg: &pill_bg 232731ff
 # Форма пилюли: radius — скругление углов, margin — отступ от верха/низа панели,
 # пилюля = height - 2*margin. Рамка пилюли — цветом модуля (pill_<цвет>),
 # у нейтральной пилюли (pill) — pill_border.
-pill_shadow: &pill_shadow 16191f99   # тень пилюли: 16191f, 60% у рамки, плавно к нулю за shadow-size
+pill_shadow: &pill_shadow 16191f99   # тень нейтральной пилюли: 16191f, 60% у рамки, плавно к нулю за shadow-size
+# Тени цветных пилюль — цвет их рамки, смешанный 50/50 с 16191f, те же 60% (…99):
+# сливаются с рамкой, но темнее. Темнее — сдвигай пропорцию к 16191f, ярче — к цвету рамки.
 pill_hover: &pill_hover 2e3440ff     # nord3 — фон пилюли под курсором (мягче: 434c5eff, nord2)
 pill_border: &pill_border 3b425280   # nord1, 50% — рамка нейтральной пилюли
 pill_shape: &pill_shape {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: *pill_border}
 pill:       &pill       {background: *pill_shape}
-pill_red:  &pill_red  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: bf616a80}}
-pill_purple:  &pill_purple  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: b48ead80}}
-pill_yellow:  &pill_yellow  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: ebcb8b80}}
-pill_orange:  &pill_orange  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: d0877080}}
-pill_blue:  &pill_blue  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: 81a1c180}}
-pill_blue_dark:  &pill_blue_dark  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: 5e81ac80}}
-pill_cyan:  &pill_cyan  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: 88c0d080}}
-pill_green:  &pill_green  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, hover-color: *pill_hover, border-color: a3be8c80}}
-pill_green_cyan:  &pill_green_cyan  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: *pill_shadow, border-color: 8fbcbb80}}
+pill_red:  &pill_red  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: 6a3d4499, hover-color: *pill_hover, border-color: bf616a80}}
+pill_purple:  &pill_purple  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: 65546699, hover-color: *pill_hover, border-color: b48ead80}}
+pill_yellow:  &pill_yellow  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: 80725599, hover-color: *pill_hover, border-color: ebcb8b80}}
+pill_orange:  &pill_orange  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: 73504899, hover-color: *pill_hover, border-color: d0877080}}
+pill_blue:  &pill_blue  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: 4c5d7099, hover-color: *pill_hover, border-color: 81a1c180}}
+pill_blue_dark:  &pill_blue_dark  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: 3a4d6699, hover-color: *pill_hover, border-color: 5e81ac80}}
+pill_cyan:  &pill_cyan  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: 4f6c7899, hover-color: *pill_hover, border-color: 88c0d080}}
+pill_green:  &pill_green  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: 5c6c5699, hover-color: *pill_hover, border-color: a3be8c80}}
+pill_green_cyan:  &pill_green_cyan  {background: {color: *pill_bg, radius: 5, margin: 4, border-width: 1, shadow-size: 8, shadow-color: 526a6d99, border-color: 8fbcbb80}}
 
 bar:
   background: 2e3440ff        # nord0
@@ -392,7 +394,8 @@ bar:
 #   высота пилюли         -> bar.height и pill_shape.margin (пилюля = height - 2*margin)
 #   рамка пилюли          -> border-width / border-color в pill_<цвет> (сейчас 50%: ...80; плотнее: ...cc)
 #   линия под панелью     -> bar.border (bottom-width: 0 = убрать)
-#   тень                  -> shadow-size (длина размытия, 0 = без тени; bar.margin не меньше) и pill_shadow (цвет)
+#   тень                  -> shadow-size (длина размытия, 0 = без тени; bar.margin не меньше);
+#                            цвет — shadow-color в pill_<цвет> (смесь рамки с 16191f), у нейтральной — pill_shadow
 #   подсветка под курсором -> pill_hover (убрать — удалить hover-color из якорей)
 #   размер текста         -> bar.font pixelsize; размер значков -> icon_font
 #   отступ текста внутри  -> left-margin / right-margin у list
